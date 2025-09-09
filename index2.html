@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phonebook Application</title>
+  <link rel="stylesheet" href="styless.css">
+</head>
+<body>
+  <div class="container">
+    <h1>📖 Phonebook</h1>
+
+
+    <input type="text" id="searchInput" placeholder="Search by name or number">
+    <form id="contactForm">
+      <input type="text" id="name" placeholder="Enter Name" required>
+      <input type="text" id="phone" placeholder="Enter Phone Number" required>
+      <button type="submit">Add Contact</button>
+    </form>
+
+    <ul id="contactList"></ul>
+  </div>
+
+  <script>
+    const API_URL = "contacts.json"; 
+const contactList = document.getElementById("contactList");
+const form = document.getElementById("contactForm");
+const searchInput = document.getElementById("searchInput");
+
+let contacts = [];
+
+async function fetchContacts() {
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error("Failed to fetch contacts");
+    contacts = await response.json();
+    displayContacts(contacts);
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+function displayContacts(list) {
+  contactList.innerHTML = "";
+  list.forEach((contact, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      ${contact.name} - ${contact.phone}
+      <div>
+        <button onclick="editContact(${index})">✏️</button>
+        <button onclick="deleteContact(${index})">🗑️</button>
+      </div>
+    `;
+    contactList.appendChild(li);
+  });
+}
+
+// Add new contact
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+
+  if (name && phone) {
+    contacts.push({ name, phone });
+    displayContacts(contacts);
+    form.reset();
+  }
+});
+
+// Edit contact
+function editContact(index) {
+  const newName = prompt("Enter new name:", contacts[index].name);
+  const newPhone = prompt("Enter new phone:", contacts[index].phone);
+
+  if (newName && newPhone) {
+    contacts[index].name = newName;
+    contacts[index].phone = newPhone;
+    displayContacts(contacts);
+  }
+}
+
+// Delete contact
+function deleteContact(index) {
+  if (confirm("Are you sure you want to delete this contact?")) {
+    contacts.splice(index, 1);
+    displayContacts(contacts);
+  }
+}
+
+// Search functionality
+searchInput.addEventListener("input", () => {
+  const keyword = searchInput.value.toLowerCase();
+  const filtered = contacts.filter(c =>
+    c.name.toLowerCase().includes(keyword) ||
+    c.phone.includes(keyword)
+  );
+  displayContacts(filtered);
+});
+
+// Initialize
+fetchContacts();
+
+  </script>
+</body>
+</html>
